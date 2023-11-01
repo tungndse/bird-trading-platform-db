@@ -1,12 +1,18 @@
-ALTER TABLE district
-    ADD COLUMN latitude NUMERIC;
-ALTER TABLE district
-    ADD COLUMN longitude NUMERIC;
+CREATE TABLE address
+(
+    id          BIGSERIAL PRIMARY KEY,
+    account_id  BIGINT      NOT NULL,
 
+    is_default  BOOLEAN,
+    description TEXT        NOT NULL,
 
-SELECT concat(dt.full_name, ', ', pv.full_name) , dt.full_name, pv.full_name
-FROM district dt
-         INNER JOIN province pv
-                    ON dt.province_code = pv.code
-ORDER BY dt.code
-LIMIT 10;
+    province_id VARCHAR(20) NOT NULL,
+    district_id VARCHAR(20) NOT NULL,
+    ward_id     VARCHAR(20) NULL,
+
+    CONSTRAINT fk_address_account FOREIGN KEY (account_id) REFERENCES account,
+    CONSTRAINT fk_address_ward FOREIGN KEY (ward_id) REFERENCES ward,
+    CONSTRAINT fk_address_district FOREIGN KEY (district_id) REFERENCES district,
+    CONSTRAINT fk_address_province FOREIGN KEY (province_id) REFERENCES province
+);
+

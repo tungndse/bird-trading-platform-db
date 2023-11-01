@@ -91,17 +91,17 @@ END;
 $$ LANGUAGE plpgsql;
 
 CREATE OR REPLACE FUNCTION calculate_package_delivery_fee(_type TEXT,
-                                                     _package_weight INT, _package_width INT,
-                                                     _package_length INT, _package_height INT)
+                                                          _package_weight INT, _package_width INT,
+                                                          _package_length INT, _package_height INT)
     RETURNS NUMERIC AS
 $$
 DECLARE
-    norm_weight                  INT;
-    target_saturated_to_weight   INT;
-    target_saturated_value       NUMERIC;
-    target_saturated_value_step  NUMERIC;
-    temp_weight_to               INT;
-    count                        SMALLINT;
+    norm_weight                 INT;
+    target_saturated_to_weight  INT;
+    target_saturated_value      NUMERIC;
+    target_saturated_value_step NUMERIC;
+    temp_weight_to              INT;
+    count                       SMALLINT;
 BEGIN
     target_saturated_to_weight := (SELECT saturated_to_weight FROM package_delivery_metadata WHERE type = _type);
 
@@ -142,4 +142,52 @@ END;
 
 $$ LANGUAGE plpgsql;
 
-SELECT calculate_package_delivery_fee('ECO', 506, 1, 1, 1);
+CREATE OR REPLACE FUNCTION update_account_status_timestamp(status_ TEXT)
+    RETURNS INT AS
+$$
+BEGIN
+    IF status_ = 'BANNED'
+    THEN
+        UPDATE account
+        SET banned_at = CURRENT_TIMESTAMP
+        FROM (SELECT DISTINCT id FROM old_table) AS od
+        WHERE account.id = od.id;
+
+    ELSIF status_ = 'DELETED'
+    THEN
+        UPDATE account
+        SET deleted_at = CURRENT_TIMESTAMP
+        FROM (SELECT DISTINCT id FROM old_table) AS od
+        WHERE account.id = od.id;
+
+
+    END IF;
+END;
+
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE TRIGGER tr_auto_update_timestamp_for_status
+    AFTER UPDATE
+    ON account
+    REFERENCING old TABLE AS old_table
+    FOR EACH STATEMENT
+EXECUTE FUNCTION update_account_status_timestamp_banned_at();
+
+CREATE OR REPLACE FUNCTION update_account_status_timestamp_banned_at()
+    RETURNS TRIGGER AS
+$$
+BEGIN
+
+    UPDATE account
+    SET banned_at = CURRENT_TIMESTAMP
+    FROM (SELECT DISTINCT id FROM old_table) AS od
+    WHERE account.id = od.id;
+
+
+END;
+
+$$ LANGUAGE plpgsql;
+
+
+
+
