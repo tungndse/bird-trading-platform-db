@@ -21,11 +21,12 @@ ALTER TABLE sub_cage
     DROP CONSTRAINT fk_sub_cage_picket_num;
 
 ALTER TABLE sub_cage
-    drop COLUMN picket_num_id;
+    DROP COLUMN picket_num_id;
 
 ALTER TABLE sub_cage
-    ADD COLUMN picket_num SMALLINT NOT NULL DEFAULT 0;  -- picket table is obsolete, should only be a field
-                                                        -- instead of having its own table
+    ADD COLUMN picket_num SMALLINT NOT NULL DEFAULT 0;
+-- picket table is obsolete, should only be a field
+-- instead of having its own table
 ALTER TABLE customer_order_item
     ADD COLUMN price NUMERIC NOT NULL DEFAULT 0;
 
@@ -87,14 +88,169 @@ ALTER TABLE cage_shape
     ADD COLUMN shop_id BIGINT; -- Shape will be shared among the whole system instead of for different shop
 
 ALTER TABLE cage_material
-    add CONSTRAINT fk_cage_material_shop FOREIGN KEY (shop_id) REFERENCES account;
+    ADD CONSTRAINT fk_cage_material_shop FOREIGN KEY (shop_id) REFERENCES account;
 ALTER TABLE cage_material
-    add COLUMN shop_id bigint; -- material will be shared among the whole system instead of for different shop
+    ADD COLUMN shop_id BIGINT; -- material will be shared among the whole system instead of for different shop
 
 ALTER TABLE cage_vignette
-    add CONSTRAINT fk_cage_vignette_shop FOREIGN KEY (shop_id) REFERENCES account;
+    ADD CONSTRAINT fk_cage_vignette_shop FOREIGN KEY (shop_id) REFERENCES account;
 ALTER TABLE cage_vignette
-    add COLUMN shop_id bigint; -- vignette will be shared among the whole system instead of for different shop
+    ADD COLUMN shop_id BIGINT;
+-- vignette will be shared among the whole system instead of for different shop
+
+--CHANGES BASED ON REVIEW2 RE-EVALUATION
+-- 1. Drop all shop_id reference in cage features,
+-- shop will use a shared pool of feature instead of defining their own
+ALTER TABLE cage_shape
+    DROP COLUMN shop_id;
+ALTER TABLE cage_material
+    DROP COLUMN shop_id;
+ALTER TABLE cage_vignette
+    DROP COLUMN shop_id;
+
+-- 2. Product suggestion will be based on their eco system,
+-- specifically the bird type (species) instead of product to product
+
+-- 3. Delivery tariff: Create 3 tables: Delivery Package, Delivery Package Timing
+-- and Bird-size Bundle Delivery Tariff
+-- ** NOTE: Do not listen to the idiots who tells you to make everything Enums, such kind of idiotic design
+-- is what causing the trouble from the beginning
+
+-- DELIVERY TYPE TABLE
+CREATE TABLE delivery_type
+(
+    id                 BIGSERIAL PRIMARY KEY,
+    code_name          TEXT NOT NULL,
+
+    name               TEXT NOT NULL,
+    description        TEXT,
+
+    preparation_hours  NUMERIC,
+    kilometer_per_hour NUMERIC
+
+);
+
+INSERT INTO delivery_type(code_name, name, description, preparation_hours, kilometer_per_hour)
+VALUES ('STD', 'Standard', 'Standard delivery package', 5, 40),
+       ('ECO', 'Economy', 'Economy delivery package', 8, 30),
+       ('FAST', 'Fast', 'Fast delivery package', 2, 60),
+       ('DELUXE', 'Quality', 'Quality delivery package', 5, 30);
+
+
+-- BIRDSIZE BATCH RATE
+CREATE TABLE birdsize_batch_delivery_rate
+(
+    id               BIGSERIAL PRIMARY KEY,
+    delivery_type_id BIGINT   NOT NULL,
+    quantity_from    SMALLINT NOT NULL,
+    quantity_to      SMALLINT NOT NULL,
+    rate             FLOAT    NOT NULL,
+
+    CONSTRAINT fk_birdsize_batch_delivery_rate_delivery_type
+        FOREIGN KEY (delivery_type_id) REFERENCES delivery_type
+);
+
+
+-- UPDATE TARIFF TABLES FROM USING ENUM TEXT TO USING REFERENCE RELATION
+-- package_delivery_tariff
+-- -- add reference column without constraint
+ALTER TABLE package_delivery_tariff
+    ADD COLUMN delivery_type_id BIGINT;
+
+-- -- updating referenced column
+UPDATE package_delivery_tariff pdt
+SET delivery_type_id = sub_query.id
+FROM (SELECT id, code_name FROM delivery_type) AS sub_query
+WHERE pdt.type = sub_query.code_name;
+
+-- -- drop enum column
+ALTER TABLE package_delivery_tariff
+    DROP COLUMN type;
+
+-- -- add foreign key constraint to newly added column
+ALTER TABLE package_delivery_tariff
+    ADD CONSTRAINT fk_package_delivery_tariff_delivery_type FOREIGN KEY (delivery_type_id)
+        REFERENCES delivery_type;
+
+-- -- restrict NOT NULL
+ALTER TABLE package_delivery_tariff
+    ALTER COLUMN delivery_type_id SET NOT NULL;
+
+-- bird_size_delivery_tariff
+ALTER TABLE birdsize_delivery_tariff
+    ADD COLUMN delivery_type_id BIGINT;
+
+UPDATE birdsize_delivery_tariff
+SET delivery_type_id = sub_query.id
+FROM (SELECT id, code_name FROM delivery_type) AS sub_query
+WHERE type = sub_query.code_name;
+
+ALTER TABLE birdsize_delivery_tariff
+    DROP COLUMN type;
+
+ALTER TABLE birdsize_delivery_tariff
+    ADD CONSTRAINT fk_birdsize_delivery_tariff_delivery_type
+        FOREIGN KEY (delivery_type_id) REFERENCES delivery_type;
+
+ALTER TABLE birdsize_delivery_tariff
+    ALTER COLUMN delivery_type_id SET NOT NULL;
+
+-- package_delivery_saturated_step_tariff
+ALTER TABLE package_delivery_saturated_step_tariff
+    ADD COLUMN delivery_type_id BIGINT;
+
+UPDATE package_delivery_saturated_step_tariff
+SET delivery_type_id = sub_query.id
+FROM (SELECT id, code_name FROM delivery_type) AS sub_query
+WHERE delivery_type = sub_query.code_name;
+
+ALTER TABLE package_delivery_saturated_step_tariff
+    ADD CONSTRAINT fk_package_delivery_saturated_step_tariff_delivery_type FOREIGN KEY (delivery_type_id)
+        REFERENCES delivery_type;
+
+ALTER TABLE package_delivery_saturated_step_tariff
+    ALTER COLUMN delivery_type_id SET NOT NULL;
+
+ALTER TABLE package_delivery_saturated_step_tariff
+    DROP COLUMN delivery_type;
+
+--------------------------------------
+
+-- ADDING DATA FOR DELUXE DELIVERY TYPE FOR PACKAGE_TARIFF
+
+INSERT INTO package_delivery_tariff (weight_from, weight_to, value, distance_type_id, delivery_type_id)
+SELECT weight_from, weight_to, value, distance_type_id, 4
+FROM package_delivery_tariff
+WHERE delivery_type_id = 1;
+
+-- TEST
+
+SELECT delivery_type_id, COUNT(id)
+FROM package_delivery_tariff
+GROUP BY delivery_type_id;
+
+-- ALTERING NEWLY CREATED DATA TO LOOK MORE REAL
+
+-- -- package_delivery_tariff
+UPDATE package_delivery_tariff
+SET value = CASE distance_type_id
+                WHEN 1 THEN value + 200
+                WHEN 2 THEN value + 250
+                WHEN 3 THEN value + 300
+                WHEN 4 THEN value + 350
+                ELSE value END
+WHERE delivery_type_id = 4;
+
+-- -- birdsize_delivery_tariff
+INSERT INTO birdsize_delivery_tariff (bird_size_group, distance_type_id, value, delivery_type_id)
+SELECT bird_size_group, distance_type_id, value * 1.2, 4
+FROM birdsize_delivery_tariff
+WHERE delivery_type_id = 1;
+
+-- -- TEST
+select delivery_type_id, count(id)
+FROM birdsize_delivery_tariff GROUP BY delivery_type_id;
+
 
 
 
