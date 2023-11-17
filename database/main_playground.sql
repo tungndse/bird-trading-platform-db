@@ -252,6 +252,35 @@ select delivery_type_id, count(id)
 FROM birdsize_delivery_tariff GROUP BY delivery_type_id;
 
 
+alter TABLE cage
+add CONSTRAINT fk_cage_shop_created_by FOREIGN KEY (created_by) REFERENCES cage;
+
+
+ALTER TABLE food
+    add column created_by bigint;
+
+alter TABLE food
+    add CONSTRAINT fk_food_shop_created_by FOREIGN KEY (created_by) REFERENCES food;
+ALTER TABLE food
+    add column updated_by bigint;
+
+alter TABLE food
+    add CONSTRAINT fk_cage_food_updated_by FOREIGN KEY (updated_by) REFERENCES food;
+
+ALTER TABLE food
+    add column deleted_by bigint;
+
+alter TABLE food
+    add CONSTRAINT fk_cage_food_deleted_by FOREIGN KEY (deleted_by) REFERENCES food;
+
+alter TABLE cage
+    add CONSTRAINT fk_cage_shop_created_by FOREIGN KEY (created_by) REFERENCES cage;
+
+alter TABLE bird
+    add CONSTRAINT fk_cage_shop_updated_by FOREIGN KEY (updated_by) REFERENCES cage;
+
+alter TABLE bird
+    add CONSTRAINT fk_cage_shop_deleted_by FOREIGN KEY (deleted_by) REFERENCES cage;
 
 
 
