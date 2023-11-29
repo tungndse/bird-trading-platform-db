@@ -92,3 +92,23 @@ CREATE INDEX idx_wards_district
 CREATE INDEX idx_wards_unit
     ON ward (administrative_unit_id);
 
+CREATE TABLE favorite_product
+(
+    id           BIGSERIAL PRIMARY KEY NOT NULL,
+
+    account_id   BIGINT                NOT NULL,
+
+    accessory_id BIGINT,
+    cage_id      BIGINT,
+    food_id      BIGINT,
+    bird_id      BIGINT,
+
+    CONSTRAINT fk_favorite_product_account FOREIGN KEY (account_id) REFERENCES account,
+    CONSTRAINT fk_favorite_product_accessory FOREIGN KEY (accessory_id) REFERENCES accessory,
+    CONSTRAINT fk_favorite_product_cage FOREIGN KEY (cage_id) REFERENCES cage,
+    CONSTRAINT fk_favorite_product_food FOREIGN KEY (food_id) REFERENCES food,
+    CONSTRAINT fk_favorite_product_bird FOREIGN KEY (bird_id) REFERENCES bird
+);
+
+
+

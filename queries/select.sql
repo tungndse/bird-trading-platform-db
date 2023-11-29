@@ -26,3 +26,8 @@ WHERE pdt.weight_from < 300
 
 SELECT *
 FROM account ;
+
+SELECT status, count(*) FROM customer_order
+GROUP BY status;
+
+SELECT count(id) from customer_order;
