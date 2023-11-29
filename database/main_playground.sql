@@ -282,10 +282,18 @@ alter TABLE bird
 alter TABLE bird
     add CONSTRAINT fk_cage_shop_deleted_by FOREIGN KEY (deleted_by) REFERENCES cage;
 
+    delete
+FROM voucher_item
+WHERE customer_order_id in (85,86,87,88,89);
 
 
+SELECT (32935 - 2000)/500;
 
+SELECT 39400 + (61*6800);
 
+SELECT 3165000 + 558200 - 1050000;
+
+SELECT 52000*2 + 454200;
 
 
 
