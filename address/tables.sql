@@ -92,6 +92,13 @@ CREATE INDEX idx_wards_district
 CREATE INDEX idx_wards_unit
     ON ward (administrative_unit_id);
 
+create table file
+(
+    id         bigserial not null primary key,
+    filename   text,
+    created_at timestamptz default current_timestamp,
+    file_type  text
+);
 CREATE TABLE favorite_product
 (
     id           BIGSERIAL PRIMARY KEY NOT NULL,
