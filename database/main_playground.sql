@@ -248,53 +248,110 @@ FROM birdsize_delivery_tariff
 WHERE delivery_type_id = 1;
 
 -- -- TEST
-select delivery_type_id, count(id)
-FROM birdsize_delivery_tariff GROUP BY delivery_type_id;
+SELECT delivery_type_id, COUNT(id)
+FROM birdsize_delivery_tariff
+GROUP BY delivery_type_id;
 
 
-alter TABLE cage
-add CONSTRAINT fk_cage_shop_created_by FOREIGN KEY (created_by) REFERENCES cage;
+ALTER TABLE cage
+    ADD CONSTRAINT fk_cage_shop_created_by FOREIGN KEY (created_by) REFERENCES cage;
 
 
 ALTER TABLE food
-    add column created_by bigint;
-
-alter TABLE food
-    add CONSTRAINT fk_food_shop_created_by FOREIGN KEY (created_by) REFERENCES food;
-ALTER TABLE food
-    add column updated_by bigint;
-
-alter TABLE food
-    add CONSTRAINT fk_cage_food_updated_by FOREIGN KEY (updated_by) REFERENCES food;
+    ADD COLUMN created_by BIGINT;
 
 ALTER TABLE food
-    add column deleted_by bigint;
+    ADD CONSTRAINT fk_food_shop_created_by FOREIGN KEY (created_by) REFERENCES food;
+ALTER TABLE food
+    ADD COLUMN updated_by BIGINT;
 
-alter TABLE food
-    add CONSTRAINT fk_cage_food_deleted_by FOREIGN KEY (deleted_by) REFERENCES food;
+ALTER TABLE food
+    ADD CONSTRAINT fk_cage_food_updated_by FOREIGN KEY (updated_by) REFERENCES food;
 
-alter TABLE cage
-    add CONSTRAINT fk_cage_shop_created_by FOREIGN KEY (created_by) REFERENCES cage;
+ALTER TABLE food
+    ADD COLUMN deleted_by BIGINT;
 
-alter TABLE bird
-    add CONSTRAINT fk_cage_shop_updated_by FOREIGN KEY (updated_by) REFERENCES cage;
+ALTER TABLE food
+    ADD CONSTRAINT fk_cage_food_deleted_by FOREIGN KEY (deleted_by) REFERENCES food;
 
-alter TABLE bird
-    add CONSTRAINT fk_cage_shop_deleted_by FOREIGN KEY (deleted_by) REFERENCES cage;
+ALTER TABLE cage
+    ADD CONSTRAINT fk_cage_shop_created_by FOREIGN KEY (created_by) REFERENCES cage;
 
-    delete
+ALTER TABLE bird
+    ADD CONSTRAINT fk_cage_shop_updated_by FOREIGN KEY (updated_by) REFERENCES cage;
+
+ALTER TABLE bird
+    ADD CONSTRAINT fk_cage_shop_deleted_by FOREIGN KEY (deleted_by) REFERENCES cage;
+
+DELETE
 FROM voucher_item
-WHERE customer_order_id in (85,86,87,88,89);
+WHERE customer_order_id IN (85, 86, 87, 88, 89);
+
+UPDATE customer_order
+SET payment_type = 'COD';
 
 
-SELECT (32935 - 2000)/500;
+ALTER TABLE product_favorite
+    ADD CONSTRAINT uq_product_favorite_accountid_foodid UNIQUE (account_id, food_id);
+ALTER TABLE product_favorite
+    ADD CONSTRAINT uq_product_favorite_accountid_cageid UNIQUE (account_id, cage_id);
+ALTER TABLE product_favorite
+    ADD CONSTRAINT uq_product_favorite_accountid_accessoryid UNIQUE (account_id, accessory_id);
+ALTER TABLE product_favorite
+    ADD CONSTRAINT uq_product_favorite_accountid_birdid UNIQUE (account_id, bird_id);
 
-SELECT 39400 + (61*6800);
+-- TEST
 
-SELECT 3165000 + 558200 - 1050000;
-
-SELECT 52000*2 + 454200;
-
+INSERT INTO product_favorite
+VALUES (DEFAULT, 3, NULL, NULL, NULL, 4, 'BIRD');
 
 
+SELECT *
+FROM customer_order;
 
+
+CREATE TABLE account_creation_request
+(
+    id                  BIGSERIAL PRIMARY KEY,
+    name                TEXT   NOT NULL,
+    description         TEXT   NOT NULL,
+    media               JSONB,
+    status              TEXT        DEFAULT 'PENDING',
+    reply               TEXT,
+
+    account_id          BIGINT NOT NULL,
+
+    created_at          TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    updated_at          TIMESTAMPTZ,
+    approved_at         TIMESTAMPTZ,
+    disapproved_at      TIMESTAMPTZ,
+    requested_update_at TIMESTAMPTZ,
+
+    CONSTRAINT fk_account_creation_request_account FOREIGN KEY (account_id) REFERENCES account
+
+);
+
+UPDATE bird
+SET origin =
+SELECT a.name
+FROM (SELECT bird.id, bird_origin.name
+    FROM bird
+    INNER JOIN bird_origin ON bird.origin_id = bird_origin.id) AS a;
+
+UPDATE bird AS b
+SET origin = c.column_a
+FROM bird
+         INNER JOIN bird_origin ON bird.origin_id = bird_origin.id
+WHERE c.column_b = t.column_b;
+
+UPDATE train
+SET var1 = (SELECT cars.var1
+            FROM cars
+            WHERE train.var2 LIKE cars.var2
+            ORDER BY train.user_id = cars.user_id DESC
+            LIMIT 1);
+
+UPDATE food
+SET origin = bird_origin.name
+FROM bird_origin
+WHERE food.origin_id= bird_origin.id;

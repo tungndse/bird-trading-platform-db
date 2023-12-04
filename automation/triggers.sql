@@ -18,7 +18,7 @@ CREATE TRIGGER tr_account_insert
     FOR EACH ROW
 EXECUTE PROCEDURE fn_account_set_event_saver_for_tr_account_insert();
 
-CREATE FUNCTION fn_account_set_event_saver_for_tr_account_status_update() RETURNS trigger
+CREATE FUNCTION fn_account_set_event_saver_for_tr_account_status_update() RETURNS TRIGGER
     LANGUAGE plpgsql
 AS
 $$
@@ -45,7 +45,7 @@ $$;
 
 ALTER FUNCTION fn_account_set_event_saver_for_tr_account_status_update() OWNER TO btp;
 
-CREATE FUNCTION fn_account_set_event_saver_for_tr_account_details_update() RETURNS trigger
+CREATE FUNCTION fn_account_set_event_saver_for_tr_account_details_update() RETURNS TRIGGER
     LANGUAGE plpgsql
 AS
 $$
@@ -61,7 +61,7 @@ $$;
 
 ALTER FUNCTION fn_account_set_event_saver_for_tr_account_details_update() OWNER TO btp;
 
-CREATE FUNCTION fn_account_set_event_saver_for_tr_account_insert() RETURNS trigger
+CREATE FUNCTION fn_account_set_event_saver_for_tr_account_insert() RETURNS TRIGGER
     LANGUAGE plpgsql
 AS
 $$
@@ -73,7 +73,42 @@ BEGIN
 END
 $$;
 
-ALTER FUNCTION fn_account_set_event_saver_for_tr_account_insert() OWNER TO btp;
+-- Auto generate a cosmetic id for customer order when created
+
+CREATE TRIGGER tr_customer_order_insert_generate_code
+    BEFORE INSERT
+    ON customer_order
+    FOR EACH ROW
+EXECUTE PROCEDURE fn_generate_order_code();
+
+CREATE FUNCTION fn_generate_order_code() RETURNS TRIGGER
+    LANGUAGE plpgsql
+AS
+$$
+BEGIN
+    new.order_code := CONCAT('BTP-', TO_CHAR(NOW(), 'DDMMYYYY'), '-', REPLACE(FORMAT('%5s', new.id), ' ', '0'));
+    RETURN new;
+END
+$$;
+
+
+CREATE or REPLACE TRIGGER tr_customer_order_updated_at_auto_fill
+    BEFORE UPDATE
+    ON customer_order
+    FOR EACH ROW
+EXECUTE PROCEDURE fn_generate_updated_at();
+
+CREATE OR REPLACE FUNCTION fn_generate_updated_at()
+    RETURNS TRIGGER
+    LANGUAGE plpgsql
+AS
+$$
+BEGIN
+    new.updated_at = CURRENT_TIMESTAMP;
+    RETURN new;
+END;
+$$
+
 
 
 
