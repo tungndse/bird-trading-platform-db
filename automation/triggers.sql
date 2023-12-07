@@ -92,7 +92,7 @@ END
 $$;
 
 
-CREATE or REPLACE TRIGGER tr_customer_order_updated_at_auto_fill
+CREATE OR REPLACE TRIGGER tr_customer_order_updated_at_auto_fill
     BEFORE UPDATE
     ON customer_order
     FOR EACH ROW
@@ -107,6 +107,7 @@ BEGIN
     new.updated_at = CURRENT_TIMESTAMP;
     RETURN new;
 END;
-$$
+$$;
+---------
 
 

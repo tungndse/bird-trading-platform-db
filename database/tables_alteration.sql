@@ -38,4 +38,9 @@ ADD CONSTRAINT fk_customer_order_item_customer_cart_item FOREIGN KEY (customer_c
 REFERENCES customer_cart_item;
 
 
+ALTER TABLE feedback
+ADD COLUMN media jsonb;
+
+
+
 

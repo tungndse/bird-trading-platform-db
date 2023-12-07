@@ -331,27 +331,31 @@ CREATE TABLE account_creation_request
 
 );
 
-UPDATE bird
-SET origin =
-SELECT a.name
-FROM (SELECT bird.id, bird_origin.name
-    FROM bird
-    INNER JOIN bird_origin ON bird.origin_id = bird_origin.id) AS a;
 
-UPDATE bird AS b
-SET origin = c.column_a
-FROM bird
-         INNER JOIN bird_origin ON bird.origin_id = bird_origin.id
-WHERE c.column_b = t.column_b;
+CREATE OR REPLACE FUNCTION public.select_multiple_values(id_ bigint)
+    RETURNS TABLE(id_child bigint, id_parent bigint, name_ character varying )
+    LANGUAGE 'plpgsql'
+    COST 100
+    VOLATILE PARALLEL UNSAFE
+    ROWS 1000
 
-UPDATE train
-SET var1 = (SELECT cars.var1
-            FROM cars
-            WHERE train.var2 LIKE cars.var2
-            ORDER BY train.user_id = cars.user_id DESC
-            LIMIT 1);
+AS $BODY$
+declare p_id_child bigint;
+    declare p_id_parent bigint;
+    declare p_name_ character varying;
+begin
 
-UPDATE food
-SET origin = bird_origin.name
-FROM bird_origin
-WHERE food.origin_id= bird_origin.id;
+    select id  into p_id_child from public.req where id = id_ ;
+    select reg_id   into p_id_parent from public.req where id = id_;
+    select "name"  into p_name_ from public.reg where id = id_parent ;
+
+
+    return query select p_id_child as id_child, p_id_parent as id_parent, p_name_ as name_ ;
+
+END
+$BODY$;
+
+
+SELECT finished_delivery_at,* FROM customer_order
+                              WHERE finished_delivery_at <= '2023-12-04 21:50:30.0330000 +00'
+                                AND status = 'DELIVERED'
