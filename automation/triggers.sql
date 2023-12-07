@@ -111,3 +111,70 @@ $$;
 ---------
 
 
+
+
+CREATE or replace FUNCTION fn_generate_order_code() RETURNS trigger
+    LANGUAGE plpgsql
+AS
+$$
+BEGIN
+    new.order_code := concat('BTP-', TO_CHAR(NOW(), 'DDMMYYYY'), '-', REPLACE(FORMAT('%5s', new.id), ' ', '0'));
+    RETURN new;
+END
+$$;
+
+CREATE TRIGGER tr_customer_order_insert_generate_code
+    BEFORE INSERT
+    ON customer_order
+    FOR EACH ROW
+EXECUTE PROCEDURE fn_generate_order_code();
+
+
+
+SELECT TO_CHAR(NOW(), 'DD-MM-YYYY');
+
+SELECT REPLACE(FORMAT('%5s', 11111111), ' ', '0');
+
+
+select 'BTP-' + TO_CHAR(NOW(), 'DD-MM-YYYY') + REPLACE(FORMAT('%5s', 55), ' ', '0');
+
+select concat('BTP-', TO_CHAR(NOW(), 'DDMMYYYY'), '-', REPLACE(FORMAT('%5s', 11111155), ' ', '0'));
+
+
+
+-- auto-generated definition
+create or replace trigger tr_customer_order_insert_generate_code
+    before insert
+    on customer_order
+    for each row
+execute procedure fn_generate_order_code();
+
+create or replace function fn_generate_order_code() returns trigger
+    language plpgsql
+as
+$$
+BEGIN
+    new.order_code := concat('BTP-', TO_CHAR(NOW(), 'DDMMYYYY'), '-', REPLACE(FORMAT('%5s', new.id), ' ', '0'));
+    RETURN new;
+END
+$$;
+
+create or replace trigger tr_customer_order_insert_generate_code
+    before insert
+    on payment
+    for each row
+execute procedure fn_generate_payment_code();
+
+create or replace function fn_generate_payment_code() returns trigger
+    language plpgsql
+as
+$$
+BEGIN
+    new.payment_code := concat('BTP-', TO_CHAR(NOW(), 'DDMMYYYY'), '-', REPLACE(FORMAT('%5s', new.id), ' ', '0'));
+    RETURN new;
+END
+$$;
+
+
+
+
