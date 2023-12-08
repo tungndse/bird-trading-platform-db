@@ -356,6 +356,6 @@ END
 $BODY$;
 
 
-SELECT finished_delivery_at,* FROM customer_order
-                              WHERE finished_delivery_at <= '2023-12-04 21:50:30.0330000 +00'
-                                AND status = 'DELIVERED'
+
+
+
