@@ -332,30 +332,199 @@ CREATE TABLE account_creation_request
 );
 
 
-CREATE OR REPLACE FUNCTION public.select_multiple_values(id_ bigint)
-    RETURNS TABLE(id_child bigint, id_parent bigint, name_ character varying )
+CREATE OR REPLACE FUNCTION public.select_multiple_values(id_ BIGINT)
+    RETURNS TABLE
+            (
+                ID_CHILD  BIGINT,
+                ID_PARENT BIGINT,
+                NAME_     CHARACTER VARYING
+            )
     LANGUAGE 'plpgsql'
     COST 100
     VOLATILE PARALLEL UNSAFE
     ROWS 1000
 
-AS $BODY$
-declare p_id_child bigint;
-    declare p_id_parent bigint;
-    declare p_name_ character varying;
-begin
+AS
+$BODY$
+DECLARE
+    p_id_child          BIGINT;
+    DECLARE p_id_parent BIGINT;
+    DECLARE p_name_     CHARACTER VARYING;
+BEGIN
 
-    select id  into p_id_child from public.req where id = id_ ;
-    select reg_id   into p_id_parent from public.req where id = id_;
-    select "name"  into p_name_ from public.reg where id = id_parent ;
+    SELECT id INTO p_id_child FROM public.req WHERE id = id_;
+    SELECT reg_id INTO p_id_parent FROM public.req WHERE id = id_;
+    SELECT "name" INTO p_name_ FROM public.reg WHERE id = id_parent;
 
 
-    return query select p_id_child as id_child, p_id_parent as id_parent, p_name_ as name_ ;
+    RETURN QUERY SELECT p_id_child AS id_child, p_id_parent AS id_parent, p_name_ AS name_;
 
 END
 $BODY$;
 
 
+ALTER TABLE sub_bird
+    ADD COLUMN status TEXT;
+ALTER TABLE sub_cage
+    ADD COLUMN status TEXT;
+ALTER TABLE sub_food
+    ADD COLUMN status TEXT;
 
+UPDATE sub_bird
+SET status = 'ACTIVE';
+UPDATE sub_cage
+SET status = 'ACTIVE';
+UPDATE sub_food
+SET status = 'ACTIVE';
+
+SELECT *
+FROM sub_bird;
+SELECT *
+FROM sub_food;
+
+ALTER TABLE cage_material
+    ADD COLUMN status TEXT;
+ALTER TABLE cage_shape
+    ADD COLUMN status TEXT;
+ALTER TABLE cage_vignette
+    ADD COLUMN status TEXT;
+
+UPDATE cage_material
+SET status = 'ACTIVE';
+UPDATE cage_shape
+SET status = 'ACTIVE';
+UPDATE cage_vignette
+SET status = 'ACTIVE';
+
+
+ALTER TABLE address
+    ADD COLUMN receiver_name TEXT;
+
+SELECT *
+FROM package_delivery_tariff;
+
+DROP FUNCTION fn_do_something();
+
+
+CREATE OR REPLACE FUNCTION fn_do_something()
+    RETURNS VOID
+
+    LANGUAGE plpgsql
+AS
+$$
+DECLARE
+    weight_from_temp      NUMERIC;
+    weight_to_temp        NUMERIC;
+    weight_to_limit       NUMERIC;
+    weight_to_saturated   NUMERIC;
+    value_temp            NUMERIC;
+    delivery_type_id_temp BIGINT;
+    distance_type_id_temp BIGINT;
+
+BEGIN
+    weight_to_limit = 100000 - 500;
+    weight_to_saturated = 2000;
+    weight_from_temp := 2000;
+    weight_to_temp := 2500;
+    delivery_type_id_temp := 1;
+    distance_type_id_temp := 1;
+
+    WHILE (weight_to_temp < 100000)
+        LOOP
+            SELECT (weight_to_temp - weight_to_saturated) / 500 * step_value + max_value_before_saturated
+            INTO value_temp
+            FROM package_delivery_saturated_step_tariff
+            WHERE delivery_type_id = delivery_type_id_temp
+              AND distance_type_id = distance_type_id_temp;
+
+            --INSERT INTO temp_table(weight_from, weight_to, distance_type_id, delivery_type_id, value)
+            --VALUES (weight_from_temp, weight_to_temp, distance_type_id_temp, delivery_type_id_temp,value_temp);
+
+
+            SELECT weight_from_temp,
+                   weight_to_temp,
+                   distance_type_id_temp,
+                   delivery_type_id_temp,
+                   value_temp;
+
+        END LOOP;
+
+END
+$$;
+
+
+SELECT step_value,
+       max_value_before_saturated
+FROM package_delivery_saturated_step_tariff
+WHERE delivery_type_id = 1
+  AND distance_type_id = 1
+;
+
+
+DO
+$$
+    BEGIN
+        SELECT * FROM account;
+    END;
+$$;
+
+CREATE OR REPLACE FUNCTION fn_x(weight_to_limit NUMERIC)
+    RETURNS TABLE
+            (
+                WEIGHT_FROM      NUMERIC,
+                WEIGHT_TO        NUMERIC,
+                DISTANCE_TYPE_ID BIGINT,
+                DELIVERY_TYPE_ID BIGINT,
+                VALUE            NUMERIC
+            )
+    LANGUAGE 'plpgsql'
+AS
+$$
+DECLARE
+    weight_from_temp      NUMERIC;
+    weight_to_temp        NUMERIC;
+    weight_to_saturated   NUMERIC;
+    value_temp            NUMERIC;
+    delivery_type_id_temp BIGINT;
+    distance_type_id_temp BIGINT;
+
+BEGIN
+    weight_to_saturated = 2000;
+    weight_from_temp := 2000;
+    weight_to_temp := 2500;
+    delivery_type_id_temp := 1;
+    distance_type_id_temp := 1;
+    while distance_type_id_temp in (SELECT id from distance_type) loop
+            WHILE (delivery_type_id_temp IN (SELECT id FROM delivery_type))
+                LOOP
+                    WHILE (weight_to_temp <= weight_to_limit)
+                        LOOP
+                            SELECT (weight_to_temp - weight_to_saturated) / 500 * step_value + max_value_before_saturated
+                            INTO value_temp
+                            FROM package_delivery_saturated_step_tariff
+                            WHERE package_delivery_saturated_step_tariff.delivery_type_id = delivery_type_id_temp
+                              AND package_delivery_saturated_step_tariff.distance_type_id = distance_type_id_temp;
+
+                            RETURN QUERY (SELECT weight_from_temp,
+                                                 weight_to_temp,
+                                                 distance_type_id_temp,
+                                                 delivery_type_id_temp,
+                                                 value_temp);
+
+                            weight_to_temp := weight_to_temp + 500;
+                            weight_from_temp := weight_from_temp + 500;
+                        END LOOP;
+                    weight_to_temp := 2500;
+                    weight_from_temp := 2000;
+                    delivery_type_id_temp := delivery_type_id_temp + 1;
+                END LOOP;
+            delivery_type_id_temp := 1;
+            distance_type_id_temp := distance_type_id_temp + 1;
+        END LOOP;
+END
+$$;
+
+SELECT weight_from, weight_to, distance_type_id, delivery_type_id, value
+FROM fn_x(20000);
 
 
