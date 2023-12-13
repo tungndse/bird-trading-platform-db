@@ -494,12 +494,14 @@ BEGIN
     weight_to_temp := 2500;
     delivery_type_id_temp := 1;
     distance_type_id_temp := 1;
-    while distance_type_id_temp in (SELECT id from distance_type) loop
+    WHILE distance_type_id_temp IN (SELECT id FROM distance_type)
+        LOOP
             WHILE (delivery_type_id_temp IN (SELECT id FROM delivery_type))
                 LOOP
                     WHILE (weight_to_temp <= weight_to_limit)
                         LOOP
-                            SELECT (weight_to_temp - weight_to_saturated) / 500 * step_value + max_value_before_saturated
+                            SELECT
+                                (weight_to_temp - weight_to_saturated) / 500 * step_value + max_value_before_saturated
                             INTO value_temp
                             FROM package_delivery_saturated_step_tariff
                             WHERE package_delivery_saturated_step_tariff.delivery_type_id = delivery_type_id_temp
@@ -527,4 +529,11 @@ $$;
 SELECT weight_from, weight_to, distance_type_id, delivery_type_id, value
 FROM fn_x(20000);
 
-
+SELECT COUNT(id)
+FROM (SELECT id
+      FROM bird
+      WHERE shop_id = 2
+      UNION
+      SELECT id
+      FROM accessory
+      WHERE shop_id = 2) AS tbl;
