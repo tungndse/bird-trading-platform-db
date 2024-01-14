@@ -1,0 +1,7 @@
+insert into public.transaction (id, transaction_code, note, status, total_gross_amount, created_at, updated_at, account_id, total_net_amount, total_platform_fee, transaction_type, transaction_name, bank_name, bank_account_number, beneficiary_name, bank_code)
+values  (3, 'okie', 'okie', 'FINISHED', 975804, '2023-12-29 05:00:54.034000 +00:00', '2023-12-29 06:10:36.077000 +00:00', 3, 975804, 0, 'CUSTOMER_REFUND', null, 'NCB', '9704198526191432198', 'NGUYEN VAN A', 'NCB'),
+        (4, '', '', 'FINISHED', 943000, '2023-12-29 09:24:08.692000 +00:00', '2024-01-08 18:40:24.067000 +00:00', 3, 943000, 0, 'CUSTOMER_REFUND', null, 'NCB', '9704198526191432198', 'NGUYEN VAN A', null),
+        (2, '', '', 'FINISHED', 36000, '2023-12-23 02:05:16.572000 +00:00', '2024-01-08 18:40:50.722000 +00:00', 27, 34560, 1440, 'SHOP_OWNER_SETTLEMENT', null, 'NCB', '9704198526191432198', 'NGUYEN VAN A', null),
+        (1, 'TA1234567890', 'string', 'FINISHED', 21433501, '2023-12-17 17:58:40.910000 +00:00', '2024-01-09 10:35:27.190000 +00:00', 2, 20576160.96, 857340.04, 'SHOP_OWNER_SETTLEMENT', null, 'string', 'string', 'string', 'NCB'),
+        (5, 'TA09012024', 'đã tất toán thành công', 'FINISHED', 12609000, '2024-01-09 11:15:08.124000 +00:00', '2024-01-09 14:16:46.071000 +00:00', 2, 12104640, 504360, 'SHOP_OWNER_SETTLEMENT', null, 'NCB', '9704198526191432198', 'NGUYEN VAN A', null),
+        (6, null, null, 'AVAILABLE', 352340, '2024-01-11 10:25:10.825000 +00:00', null, 2, 338246.4, 14093.6, 'SHOP_OWNER_SETTLEMENT', null, null, null, null, null);
