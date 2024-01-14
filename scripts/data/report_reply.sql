@@ -1,0 +1,18 @@
+insert into public.report_reply (id, report_id, role, content, created_at, created_by)
+values  (3, 5, 'ACCUSER', '别跟我操', '2023-11-16 09:01:40.504000 +00:00', 22),
+        (4, 5, 'DEFENDER', '????', '2023-11-16 09:01:58.527000 +00:00', 2),
+        (6, 5, 'ACCUSER', 'The cage is broken when received', '2023-11-16 09:04:10.414000 +00:00', 22),
+        (1, 5, 'JUDGE', 'Please say something, shop', '2023-11-16 08:38:56.643000 +00:00', 1),
+        (5, 5, 'JUDGE', 'Please speak in English or Vietnamese', '2023-11-16 09:02:34.311000 +00:00', 1),
+        (2, 5, 'DEFENDER', 'I am here, I can''t get what the customer accused me of, need more info', '2023-11-16 08:59:50.057000 +00:00', 2),
+        (7, 6, 'DEFENDER', 'Hello, I''m the shop owner, would you send me some pictures of the dead bird, especially the cage where it dies', '2023-11-17 06:42:18.982000 +00:00', 2),
+        (8, 6, 'ACCUSER', 'I sent the picture, as you can see, it seems like it was sick', '2023-11-17 06:43:11.302000 +00:00', 3),
+        (9, 6, 'JUDGE', 'Hi, I''m the admin taking over this report, would you mind sending me pictures of the bird before sending to delivery, shop owner?', '2023-11-17 06:44:32.482000 +00:00', 1),
+        (10, 6, 'DEFENDER', 'I didn''t take any picture before sending', '2023-11-17 06:44:57.917000 +00:00', 2),
+        (11, 6, 'JUDGE', 'Ok, we will send someone to take a investigation at the bird, in the meantime, please take a picture of the bird now and do not try to touch or tamper with the product, Mr Customer', '2023-11-17 06:46:03.879000 +00:00', 1),
+        (12, 6, 'ACCUSER', 'Ok, sent you pic already.', '2023-11-17 06:46:20.843000 +00:00', 3),
+        (13, 6, 'JUDGE', 'Ok so we have taken a look at the product, and we agree that the bird had a sickness that caused the death. For this, I''m sorry to inform Shop Owner that we will have to confirm this Order as Violated and the payment will be refunded to Customer, if Shop owner has any objection please reply to this report', '2023-11-17 06:48:35.757000 +00:00', 1),
+        (14, 6, 'DEFENDER', 'I have no objection', '2023-11-17 06:48:56.740000 +00:00', 2),
+        (15, 6, 'JUDGE', 'We will see that as an acceptance of the decision. Customer, please pack up the rest of the order items for returning back to shop. And shop owner, please contact this number 2133423452 for a returning delivery, and both of you please keep in touch for the returning to be completed successfully', '2023-11-17 06:51:08.253000 +00:00', 1),
+        (16, 7, 'DEFENDER', 'shop reply SDFASDFS', '2023-11-20 10:34:26.539000 +00:00', 2),
+        (17, 7, 'ACCUSER', 'user reply SDFASDFS', '2023-11-20 10:34:45.850000 +00:00', 3);
